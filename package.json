@@ -1,0 +1,17 @@
+{
+  "name": "dykonweb",
+  "version": "1.0.0",
+  "description": "DYKON-kovo website",
+  "main": "index.js",
+  "scripts": {
+    "tailwind:dev": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "tailwind:build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}
