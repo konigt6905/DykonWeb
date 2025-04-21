@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Your custom base styles or component overrides can go here */
+html {
+    scroll-behavior: smooth;
+}
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: theme('colors.neutral.900'); /* Use theme() for config values */
+    color: theme('colors.neutral.200');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+.partial-container {
+    min-height: 1px; /* Prevent collapse before content load */
+    /* Let AOS handle initial visibility/opacity */
+}
+/* Optional: Softer Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: theme('colors.neutral.900'); }
+::-webkit-scrollbar-thumb { background: theme('colors.neutral.600'); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: theme('colors.neutral.500'); }
+
+/* Fallback Aspect Ratio CSS - Can likely be removed if using Tailwind's native aspect-w-1 aspect-h-1 or plugin */
+/* Ensure Tailwind handles aspect ratios where needed instead */
+/*
+.aspect-ratio-1-1 { position: relative; width: 100%; padding-top: 100%; }
+.aspect-ratio-1-1 > img,
+.aspect-ratio-1-1 > div { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+*/
+
+/* Basic Fallback Prose Styles - Consider using the @tailwindcss/typography plugin instead */
+/*
+.prose-fallback-invert { color: #d4d4d4; }
+.prose-fallback-invert p { margin-top: 1.25em; margin-bottom: 1.25em; line-height: 1.7; }
+.prose-fallback-invert blockquote { margin-top: 1.6em; margin-bottom: 1.6em; padding-left: 1em; border-left: 0.25em solid #404040; font-style: italic; color: #e5e5e5; }
+.prose-fallback-invert blockquote p:first-of-type::before { content: none; }
+.prose-fallback-invert blockquote p:last-of-type::after { content: none; }
+.prose-fallback-invert ul { margin-top: 1.25em; margin-bottom: 1.25em; padding-left: 1.7em; }
+.prose-fallback-invert li { margin-top: 0.5em; margin-bottom: 0.5em; }
+.prose-fallback-invert li::marker { color: #525252; }
+*/
+
+/* Style for mobile menu */
+.md\:hidden.hidden {
+    display: none;
+}
