@@ -8,8 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const partialContainers = document.querySelectorAll('[id$="-container"]');
     const totalPartials = partialContainers.length;
-    let loadedCount = 0; // Counter for successful loads
-    let allFetchesAttempted = false; // Flag to know when all fetches have been tried
+    // REMOVED: loadedCount, allFetchesAttempted, onPartialLoaded function
 
     console.log(`Found ${totalPartials} partial containers.`); // Log count
 
@@ -32,86 +31,49 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeMobileNav = () => {
+        // --- Keeping this function exactly the same as before ---
         const menuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
-
-        // Check if elements exist before adding listeners
         if (menuButton && mobileMenu) {
             const menuIcons = menuButton.querySelectorAll('svg');
             const menuIconOpen = menuIcons.length > 0 ? menuIcons[0] : null;
             const menuIconClose = menuIcons.length > 1 ? menuIcons[1] : null;
-
-            // Ensure icons exist before trying to toggle classes
             if (!menuIconOpen || !menuIconClose) {
-                console.error("Could not find menu icons within the mobile menu button.");
-                return;
+                console.error("Could not find menu icons within the mobile menu button."); return;
             }
-
-            // Only add listener if not already added (basic check)
             if (!menuButton.dataset.listenerAdded) {
                 menuButton.addEventListener('click', () => {
                     const expanded = menuButton.getAttribute('aria-expanded') === 'true' || false;
                     menuButton.setAttribute('aria-expanded', String(!expanded));
-                    mobileMenu.classList.toggle('hidden'); // Toggle visibility of the menu
-                    menuIconOpen.classList.toggle('hidden'); // Toggle open icon
-                    menuIconOpen.classList.toggle('block');
-                    menuIconClose.classList.toggle('hidden'); // Toggle close icon
-                    menuIconClose.classList.toggle('block');
+                    mobileMenu.classList.toggle('hidden');
+                    menuIconOpen.classList.toggle('hidden'); menuIconOpen.classList.toggle('block');
+                    menuIconClose.classList.toggle('hidden'); menuIconClose.classList.toggle('block');
                 });
-
-                // Add event listener to close menu when a link is clicked
                 mobileMenu.querySelectorAll('a').forEach(link => {
                     link.addEventListener('click', () => {
-                        // Check if the menu is currently open before trying to close it
-                        if (!mobileMenu.classList.contains('hidden')) {
-                            menuButton.click(); // Simulate a click on the button to close the menu
-                        }
+                        if (!mobileMenu.classList.contains('hidden')) { menuButton.click(); }
                     });
                 });
-                menuButton.dataset.listenerAdded = 'true'; // Mark listener as added
+                menuButton.dataset.listenerAdded = 'true';
                 console.log("Mobile navigation initialized.");
             }
-
         } else {
-            console.error("Mobile menu button or menu container not found when trying to initialize nav.");
-            // Retry initialization slightly later in case the nav partial loaded last
-            setTimeout(initializeMobileNav, 100);
+            // Still try to re-run later if elements aren't found immediately
+            console.warn("Mobile menu elements not found immediately after partials settled, will retry initialization soon.");
+            setTimeout(initializeMobileNav, 200); // Retry after a slightly longer delay
         }
     };
 
     const tryAOSRefresh = () => {
+        // --- Keeping this function exactly the same as before ---
         if (typeof AOS !== 'undefined') {
-            // Ensure AOS is initialized before refreshing, might need a slight delay
             setTimeout(() => {
                 console.log("Attempting AOS refresh...");
-                try {
-                    AOS.refresh();
-                    console.log("AOS refreshed.");
-                } catch(e) {
-                    console.error("Error refreshing AOS:", e);
-                }
-            }, 100); // Increased delay slightly
+                try { AOS.refresh(); console.log("AOS refreshed."); }
+                catch(e) { console.error("Error refreshing AOS:", e); }
+            }, 100);
         } else {
             console.log("AOS library not found or not initialized, skipping refresh.");
-        }
-    };
-
-    const onPartialLoaded = (success) => {
-        if (success) {
-            loadedCount++;
-        }
-        console.log(`Partials loaded: ${loadedCount} / ${totalPartials}`);
-        // Check if all fetches have been attempted *and* the count matches total
-        // Or if all fetches attempted even if some failed
-        if (allFetchesAttempted && loadedCount >= totalPartials) {
-            console.log("All partials loaded successfully.");
-            initializeMobileNav();
-            tryAOSRefresh();
-        } else if (allFetchesAttempted) {
-            console.warn(`Partial loading complete, but some failed. Loaded: ${loadedCount}/${totalPartials}`);
-            initializeMobileNav(); // Still try to init nav
-            // Decide if you want to refresh AOS even if parts failed
-            // tryAOSRefresh();
         }
     };
 
@@ -133,39 +95,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const fetchPromise = fetchHtml(partialUrl)
             .then(htmlContent => {
-                const isErrorContent = htmlContent.includes('Error loading content from');
-                if (isErrorContent) {
-                    console.warn(`Injecting error message into #${container.id}`);
-                } else {
-                    console.log(`Injecting content into #${container.id}`);
-                }
-
+                // Inject content immediately after fetch resolves
                 try {
+                    console.log(`Attempting to set innerHTML for #${container.id}`);
                     container.innerHTML = htmlContent;
-                    container.classList.add('loaded'); // Add loaded class regardless to make it visible
-                    if (!isErrorContent) {
-                        // Request animation frame can sometimes help ensure DOM is updated before further JS runs
-                        requestAnimationFrame(() => {
-                            onPartialLoaded(true); // Mark as success
-                        });
-                    } else {
-                        onPartialLoaded(false); // Mark as failure
-                    }
+                    container.classList.add('loaded'); // Add loaded class right after successful injection
+                    console.log(`Successfully set innerHTML for #${container.id}`);
                 } catch (e) {
                     console.error(`Error setting innerHTML for #${container.id}:`, e);
                     container.innerHTML = `<div class="p-4 text-red-700 bg-red-100">Failed to render content for ${partialName}.</div>`;
-                    container.classList.add('loaded');
-                    onPartialLoaded(false); // Mark as failure
+                    container.classList.add('loaded'); // Add loaded anyway to ensure visibility
+                    // Optionally re-throw or handle error state if needed for Promise.allSettled check
                 }
-                return partialName; // Resolve with name for tracking
+                return { name: partialName, status: 'fulfilled' }; // Return success status
             })
             .catch(error => {
-                // Catch unexpected errors during the promise chain for this specific partial
-                console.error(`Unhandled promise error for ${partialName}:`, error);
-                container.innerHTML = `<div class="p-4 text-red-700 bg-red-100">Critical error loading ${partialName}.</div>`;
+                // Catch fetch errors or errors from fetchHtml returning the error message
+                console.error(`Promise failed for ${partialName}:`, error);
+                // Display error in container if fetchHtml didn't already provide one
+                if (!container.innerHTML.includes('Error loading content from')) {
+                    container.innerHTML = `<div class="p-4 text-red-700 bg-red-100">Critical error loading ${partialName}.</div>`;
+                }
                 container.classList.add('loaded');
-                onPartialLoaded(false); // Mark as failure
-                return partialName; // Resolve even on error to allow Promise.allSettled to complete
+                return { name: partialName, status: 'rejected', reason: error }; // Return failure status
             });
 
         fetchPromises.push(fetchPromise);
@@ -174,9 +126,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait for all initiated fetch/inject operations to settle (either succeed or fail)
     Promise.allSettled(fetchPromises).then((results) => {
         console.log("All fetch/inject promises settled.");
-        allFetchesAttempted = true; // Mark that all attempts are done
-        // Check if the final counts match after all settled
-        onPartialLoaded(null); // Call final check in case last one finished here
+
+        // Optional: Check results for failures
+        let allSucceeded = true;
+        results.forEach(result => {
+            if (result.status === 'rejected') {
+                allSucceeded = false;
+                console.error(`Failed to process partial: ${result.reason?.name || 'Unknown'}`, result.reason);
+            } else if (result.value?.status === 'rejected') {
+                allSucceeded = false; // Handle cases where the promise resolved but indicated failure
+                console.error(`Failed to process partial: ${result.value.name}`, result.value.reason);
+            }
+        });
+
+        if (allSucceeded) {
+            console.log("All partials processed successfully. Running initializations.");
+        } else {
+            console.warn("Some partials failed to process. Running initializations anyway.");
+        }
+
+
+        // --- RUN INITIALIZATIONS DIRECTLY HERE ---
+        initializeMobileNav();
+        tryAOSRefresh();
+        console.log("Include script finished post-load initializations.");
+        // --- END OF INITIALIZATIONS ---
+
     });
 
     console.log("Partial include processing initiated for all containers.");
