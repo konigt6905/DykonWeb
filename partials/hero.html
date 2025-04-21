@@ -1,26 +1,110 @@
 <section id="home" class="relative bg-neutral-900 text-white overflow-hidden">
     <div class="absolute inset-0">
-        <img src="assets/images/hero.jpg" alt="Výrobní hala nebo detail stroje" class="w-full h-full object-cover object-center opacity-20" onerror="this.style.display='none'">
-        <div class="absolute inset-0 bg-gradient-to-b from-neutral-900 via-neutral-900/70 to-neutral-900"></div>
+        <!-- Increased opacity from 0.30 to 0.45 -->
+        <img src="assets/images/hero.jpg" alt="Výrobní hala DYKON-kovo" class="w-full h-full object-cover object-center opacity-45" onerror="this.style.display='none'">
+        <!-- Adjusted the gradient to be less opaque -->
+        <div class="absolute inset-0 bg-gradient-to-b from-neutral-900/80 via-neutral-900/70 to-neutral-900/90"></div>
+
+        <!-- Metal pattern overlay -->
+        <div class="absolute inset-0 opacity-15 mix-blend-overlay bg-gradient-to-br from-blue-500/10 to-neutral-900"></div>
+
+        <!-- Animated particles for industrial feel -->
+        <div class="absolute inset-0" id="particles-container"></div>
     </div>
 
-    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-36 md:py-52 text-center">
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-40 md:py-56 lg:py-64 text-center">
         <div data-aos="fade-up" data-aos-duration="800">
             <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-                <span class="block xl:inline">Precizní výroba</span>
-                <span class="block text-blue-400 xl:inline">a broušení kovů</span>
+                <span class="block xl:inline relative z-10 glow-text">Precizní výroba</span>
+                <span class="block mt-2 xl:mt-0 xl:inline bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">a broušení kovů</span>
             </h1>
-            <p class="mt-6 max-w-md mx-auto text-lg text-neutral-300 sm:text-xl md:mt-8 md:max-w-3xl" data-aos="fade-up" data-aos-delay="150">
-                Špičková kvalita a technologie pro váš průmysl. Spolehlivý partner pro vaše kovové komponenty.
-            </p>
-        </div>
-        <div class="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center" data-aos="fade-up" data-aos-delay="300">
-            <div class="space-y-4 sm:space-y-0 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5">
-                <a href="#services" class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition duration-300"> Naše Služby
-                </a>
-                <a href="#contact" class="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-blue-300 bg-neutral-700 hover:bg-neutral-600 transition duration-300"> Kontaktujte Nás
-                </a>
+
+            <div class="relative mt-2 mx-auto max-w-md md:max-w-3xl" data-aos="fade-up" data-aos-delay="150">
+                <!-- Chrome bar effect -->
+                <div class="h-1 w-24 bg-gradient-to-r from-blue-500 to-transparent rounded-full mx-auto mb-6"></div>
+
+                <p class="mt-6 text-lg text-neutral-300 sm:text-xl">
+                    <span class="font-semibold text-white">Špičková kvalita a technologie</span> pro váš průmysl.
+                    <br class="hidden md:inline">
+                    Spolehlivý partner pro vaše kovové komponenty.
+                </p>
             </div>
+        </div>
+
+        <!-- Fixed mobile buttons -->
+        <div class="mt-10 max-w-xs sm:max-w-none mx-auto sm:flex sm:justify-center sm:gap-4" data-aos="fade-up" data-aos-delay="300">
+            <a href="#services" class="block sm:inline-flex items-center justify-center text-center px-5 py-3 mb-4 sm:mb-0 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition duration-300 w-full sm:w-auto">
+                <span>Naše Služby</span>
+                <svg class="ml-2 w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </a>
+
+            <a href="tel:+420776280930" class="block sm:inline-flex items-center justify-center text-center px-5 py-3 border border-transparent text-base font-medium rounded-lg text-blue-300 bg-neutral-700 hover:bg-neutral-600 transition duration-300 w-full sm:w-auto">
+                <svg class="mr-2 w-4 h-4 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <span>+420 776 280 930</span>
+            </a>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 cursor-pointer animate-float">
+            <a href="#about" class="flex flex-col items-center text-neutral-400 hover:text-white transition duration-300">
+                <span class="text-sm mb-2">Více</span>
+                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </a>
         </div>
     </div>
 </section>
+
+<!-- Simple particle system script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('particles-container');
+        if (!container) return;
+
+        for (let i = 0; i < 30; i++) {
+            createParticle(container);
+        }
+    });
+
+    function createParticle(container) {
+        const particle = document.createElement('span');
+
+        // Styling the particle
+        particle.style.position = 'absolute';
+        particle.style.width = (2 + Math.random() * 3) + 'px';
+        particle.style.height = (2 + Math.random() * 3) + 'px';
+        particle.style.background = 'rgba(255, 255, 255, ' + (0.1 + Math.random() * 0.3) + ')';
+        particle.style.borderRadius = '50%';
+
+        // Random starting position
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+
+        // Add to container
+        container.appendChild(particle);
+
+        // Animation
+        animateParticle(particle);
+    }
+
+    function animateParticle(particle) {
+        const duration = 15000 + Math.random() * 20000; // 15-35 seconds
+        const xDestination = Math.random() * 100;
+        const yDestination = Math.random() * 100;
+
+        particle.animate([
+            { transform: `translate(0, 0)` },
+            { transform: `translate(${xDestination - 50}px, ${yDestination - 50}px)` }
+        ], {
+            duration: duration,
+            iterations: Infinity,
+            direction: 'alternate',
+            easing: 'ease-in-out'
+        });
+    }
+</script>

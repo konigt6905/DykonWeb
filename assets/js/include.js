@@ -83,12 +83,55 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof AOS !== 'undefined') {
             setTimeout(() => {
                 console.log("Attempting AOS refresh...");
-                try { AOS.refresh(); console.log("AOS refreshed."); }
-                catch(e) { console.error("Error refreshing AOS:", e); }
+                try {
+                    AOS.refresh();
+                    console.log("AOS refreshed.");
+                }
+                catch(e) {
+                    console.error("Error refreshing AOS:", e);
+                }
             }, 100);
         } else {
             console.log("AOS library not found or not initialized, skipping refresh.");
         }
+    };
+
+    const initializeFloatingContact = () => {
+        const floatingButtons = document.querySelectorAll('.floating-contact .contact-btn');
+        if (floatingButtons.length > 0) {
+            floatingButtons.forEach((btn, index) => {
+                // Add delay to stagger the animations
+                btn.style.animationDelay = `${index * 0.1}s`;
+                btn.classList.add('animate-float');
+            });
+            console.log("Floating contact buttons initialized.");
+        }
+    };
+
+    const initializeParticleEffects = () => {
+        // This will be handled by the inline script in the hero.html partial
+        console.log("Particle effects initialization delegated to hero.html script.");
+    };
+
+    // Smooth scrolling for all anchor links
+    const initializeSmoothScrolling = () => {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return; // Skip if it's just a # link
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // Scroll smoothly to the target
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        console.log("Smooth scrolling initialized for anchor links.");
     };
 
     if (totalPartials === 0) {
@@ -161,6 +204,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- RUN INITIALIZATIONS DIRECTLY HERE ---
         initializeMobileNav();
         tryAOSRefresh();
+        initializeFloatingContact();
+        initializeParticleEffects();
+        initializeSmoothScrolling();
+
+        // Initialize gallery (if function exists, it's loaded from the gallery partial)
+        if (typeof window.initGallery === 'function') {
+            setTimeout(() => {
+                try {
+                    window.initGallery();
+                    console.log("Gallery initialized.");
+                } catch (e) {
+                    console.error("Error initializing gallery:", e);
+                }
+            }, 500); // Small delay to ensure DOM is ready
+        }
+
         console.log("Include script finished post-load initializations.");
         // --- END OF INITIALIZATIONS ---
     });

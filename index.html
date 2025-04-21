@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="DYKON-kovo, s.r.o. - Precizní výroba a broušení řezných nožů a technického vybavení.">
-    <meta name="keywords" content="kovovýroba, broušení nožů, řezné nože, technické vybavení, DYKON-kovo, Služovice">
-    <title>DYKON-kovo, s.r.o. | Výroba a broušení kovů</title>
+    <meta name="description" content="DYKON-kovo, s.r.o. - Precizní výroba a broušení řezných nožů a technického vybavení. Profesionální kovozpracování na míru vašim potřebám.">
+    <meta name="keywords" content="kovovýroba, broušení nožů, řezné nože, technické vybavení, DYKON-kovo, Služovice, precizní obrábění, zakázková výroba">
+    <title>DYKON-kovo, s.r.o. | Profesionální výroba a broušení kovů</title>
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
 
@@ -17,8 +17,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    <script src="https://kit.fontawesome.com/a81368914c.js"></script>
 </head>
-<body class="bg-neutral-900"> <div id="nav-container" class="partial-container"></div> <main>
+<body class="bg-neutral-900">
+<!-- Floating Contact Buttons -->
+<div class="floating-contact">
+    <a href="tel:+420776280930" class="contact-btn phone" title="Zavolat nám">
+        <i class="fas fa-phone"></i>
+    </a>
+    <a href="mailto:info@dykon-kovo.cz" class="contact-btn email" title="Poslat email">
+        <i class="fas fa-envelope"></i>
+    </a>
+    <a href="#contact" class="contact-btn form" title="Kontaktní formulář">
+        <i class="fas fa-comment-dots"></i>
+    </a>
+</div>
+
+<div id="nav-container" class="partial-container"></div>
+
+<main>
     <div id="hero-container" class="partial-container"></div>
     <div id="text-presentation-container" class="partial-container"></div>
     <div id="features-container" class="partial-container"></div>
@@ -38,10 +55,10 @@
         console.log("Initializing AOS...");
         try {
             AOS.init({
-                duration: 500,           // Reduced duration for less drastic feel
+                duration: 700,           // Slightly longer duration for smoother animations
                 offset: 120,             // Slightly increased offset
                 once: true,              // Keep: Animate only once
-                easing: 'ease-in-out',   // Smoother easing
+                easing: 'ease-out',      // Smoother easing
                 // --- CRITICAL CHANGE FOR MOBILE ---
                 disable: 'phone',        // Use 'phone' which is more reliable than custom function
                 // --- OR use a simpler width check ---
@@ -55,6 +72,16 @@
                 el.style.opacity = 1;
             });
         }
+    });
+
+    // Initialize gallery on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+        // Will be defined in gallery.js
+        setTimeout(() => {
+            if (typeof initGallery === 'function') {
+                initGallery();
+            }
+        }, 1000); // Short delay to ensure content is loaded
     });
 </script>
 
