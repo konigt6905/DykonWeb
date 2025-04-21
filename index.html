@@ -38,20 +38,22 @@
         console.log("Initializing AOS...");
         try {
             AOS.init({
-                duration: 500,        // Reduced duration for less drastic feel
-                offset: 120,          // Slightly increased offset
-                once: true,           // Keep: Animate only once
-                easing: 'ease-in-out', // Smoother easing
+                duration: 500,           // Reduced duration for less drastic feel
+                offset: 120,             // Slightly increased offset
+                once: true,              // Keep: Animate only once
+                easing: 'ease-in-out',   // Smoother easing
                 // --- CRITICAL CHANGE FOR MOBILE ---
-                disable: function() { // Disable AOS on smaller screens
-                    return window.innerWidth < 768; // 768px is Tailwind's 'md' breakpoint
-                }
-                // --- OR ---
-                // disable: 'mobile' // Simpler option if AOS's default mobile detection is sufficient
+                disable: 'phone',        // Use 'phone' which is more reliable than custom function
+                // --- OR use a simpler width check ---
+                // disable: window.innerWidth < 768,  // Fixed value instead of function
             });
             console.log("AOS Initialized successfully.");
         } catch (e) {
             console.error("Error initializing AOS:", e);
+            document.querySelectorAll('[data-aos]').forEach(el => {
+                el.removeAttribute('data-aos');
+                el.style.opacity = 1;
+            });
         }
     });
 </script>

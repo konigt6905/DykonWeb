@@ -8,30 +8,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const partialContainers = document.querySelectorAll('[id$="-container"]');
     const totalPartials = partialContainers.length;
-    // REMOVED: loadedCount, allFetchesAttempted, onPartialLoaded function
 
     console.log(`Found ${totalPartials} partial containers.`); // Log count
 
+    // Determine base path by getting the current path from window.location
+    // This helps with GitHub Pages deployment where the site might be in a subdirectory
+    function getBasePath() {
+        // Extract the repository name from the pathname for GitHub Pages
+        const pathSegments = window.location.pathname.split('/');
+        // If deployed on GitHub Pages with a repo name, the repo name will be the first segment
+        const repoName = pathSegments[1] && !pathSegments[1].includes('.html') ? `/${pathSegments[1]}` : '';
+
+        console.log(`Detected base path: ${repoName}`);
+        return repoName;
+    }
+
+    const basePath = getBasePath();
+
     const fetchHtml = async (url) => {
-        console.log(`Attempting to fetch: ${url}`); // Log fetch attempt
+        // Adjust URL to include base path
+        const adjustedUrl = `${basePath}/${url}`;
+        console.log(`Attempting to fetch: ${adjustedUrl}`); // Log fetch attempt
+
         try {
-            const response = await fetch(url);
-            console.log(`Response status for ${url}: ${response.status}`); // Log status
+            const response = await fetch(adjustedUrl);
+            console.log(`Response status for ${adjustedUrl}: ${response.status}`); // Log status
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status} for ${url}`);
+                throw new Error(`HTTP error! Status: ${response.status} for ${adjustedUrl}`);
             }
             const text = await response.text();
-            console.log(`Successfully fetched content for ${url} (length: ${text.length})`); // Log success and length
+            console.log(`Successfully fetched content for ${adjustedUrl} (length: ${text.length})`); // Log success and length
             return text;
         } catch (error) {
-            console.error(`Error fetching partial ${url}:`, error); // Log specific fetch error
+            console.error(`Error fetching partial ${adjustedUrl}:`, error); // Log specific fetch error
             // Return specific error message for the container
-            return `<div class="p-4 text-red-500 bg-red-100 border border-red-400 rounded">Error loading content from ${url}. Check path/server.</div>`;
+            return `<div class="p-4 text-red-500 bg-red-100 border border-red-400 rounded">Error loading content from ${adjustedUrl}. Check path/server.</div>`;
         }
     };
 
     const initializeMobileNav = () => {
-        // --- Keeping this function exactly the same as before ---
         const menuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
         if (menuButton && mobileMenu) {
@@ -65,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const tryAOSRefresh = () => {
-        // --- Keeping this function exactly the same as before ---
         if (typeof AOS !== 'undefined') {
             setTimeout(() => {
                 console.log("Attempting AOS refresh...");
@@ -105,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error(`Error setting innerHTML for #${container.id}:`, e);
                     container.innerHTML = `<div class="p-4 text-red-700 bg-red-100">Failed to render content for ${partialName}.</div>`;
                     container.classList.add('loaded'); // Add loaded anyway to ensure visibility
-                    // Optionally re-throw or handle error state if needed for Promise.allSettled check
                 }
                 return { name: partialName, status: 'fulfilled' }; // Return success status
             })
@@ -145,13 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("Some partials failed to process. Running initializations anyway.");
         }
 
-
         // --- RUN INITIALIZATIONS DIRECTLY HERE ---
         initializeMobileNav();
         tryAOSRefresh();
         console.log("Include script finished post-load initializations.");
         // --- END OF INITIALIZATIONS ---
-
     });
 
     console.log("Partial include processing initiated for all containers.");

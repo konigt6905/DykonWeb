@@ -48,3 +48,36 @@ body {
 .md\:hidden.hidden {
     display: none;
 }
+
+.partial-container {
+    min-height: 1px; /* Prevent collapse */
+    opacity: 1;      /* Ensure visibility */
+}
+
+/* Force visibility on smaller screens regardless of AOS */
+@media (max-width: 768px) {
+    [data-aos] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+
+    /* Ensure mobile menu operates correctly */
+    #mobile-menu.hidden {
+        display: none;
+    }
+
+    #mobile-menu:not(.hidden) {
+        display: block;
+    }
+}
+
+/* Add a simple fallback content for empty containers */
+.partial-container:empty::before {
+    content: "Loading content...";
+    display: block;
+    padding: 1rem;
+    color: #a3a3a3;
+    text-align: center;
+}
+
