@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Prompt Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Basic styling for the tree view */
+        .tree ul {
+            padding-left: 1.5rem;
+            border-left: 1px solid #ccc;
+            margin-left: 0.5rem;
+        }
+        .tree li {
+            list-style: none;
+            margin: 0.25rem 0;
+            position: relative;
+        }
+        .tree li::before {
+            content: '';
+            position: absolute;
+            top: 0.6em; /* Adjust vertical position */
+            left: -1.5rem;
+            width: 1rem;
+            height: 1px;
+            background-color: #ccc;
+        }
+        .tree label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+        .tree input[type="checkbox"] {
+            margin-right: 0.5rem;
+            cursor: pointer;
+        }
+        /* Hide the actual file input button, style the label instead */
+        input[type="file"] {
+            display: none;
+        }
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .custom-file-upload:hover {
+            background-color: #e0e0e0;
+        }
+        /* Simple message box styling */
+        #message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: none; /* Hidden by default */
+            z-index: 1000;
+            font-family: sans-serif;
+        }
+        #message-box.success {
+            background-color: #d4edda; /* Light green */
+            color: #155724; /* Dark green */
+            border: 1px solid #c3e6cb;
+        }
+        #message-box.error {
+            background-color: #f8d7da; /* Light red */
+            color: #721c24; /* Dark red */
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-5">
+<div class="container mx-auto max-w-4xl bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4 text-center text-gray-700">Project Prompt Generator</h1>
+
+    <div class="mb-4 text-center">
+        <label for="fileInput" class="custom-file-upload bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+            Select Project Folder
+        </label>
+        <input type="file" id="fileInput" webkitdirectory directory multiple class="hidden">
+        <p id="folder-name" class="text-sm text-gray-500 mt-2 italic"></p>
+    </div>
+
+    <div id="file-tree-container" class="mb-4 p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[200px] max-h-[400px] overflow-y-auto">
+        <p class="text-gray-500">Select a folder to see the file tree here.</p>
+    </div>
+
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-2 sm:space-y-0">
+        <div class="flex items-center">
+            <input type="checkbox" id="include-full-tree" class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+            <label for="include-full-tree" class="text-gray-700">Include full tree in prompt</label>
+        </div>
+        <button id="generate-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            Generate & Copy Prompt
+        </button>
+    </div>
+
+    <div class="mb-4">
+        <label for="output-preview" class="block text-sm font-medium text-gray-700 mb-1">Generated Prompt Preview:</label>
+        <textarea id="output-preview" rows="10" class="w-full p-2 border border-gray-300 rounded-md bg-gray-50" readonly placeholder="Prompt will appear here..."></textarea>
+    </div>
+
+</div>
+
+<div id="message-box"></div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileTreeContainer = document.getElementById('file-tree-container');
+    const generateButton = document.getElementById('generate-button');
+    const includeFullTreeCheckbox = document.getElementById('include-full-tree');
+    const outputPreview = document.getElementById('output-preview');
+    const folderNameDisplay = document.getElementById('folder-name');
+    const messageBox = document.getElementById('message-box');
+
+    // --- Global State ---
+    let fileStructure = {};
+    let fileMap = new Map();
+    let rootFolderName = '';
+
+    // --- File Type Definitions ---
+    // Set of common text file extensions (lowercase)
+    const TEXT_EXTENSIONS = new Set([
+        'txt', 'md', 'markdown', 'html', 'htm', 'css', 'js', 'mjs', 'cjs', 'json', 'xml', 'yaml', 'yml',
+        'csv', 'log', 'ini', 'cfg', 'conf', 'sh', 'bat', 'ps1', 'py', 'rb', 'php', 'java', 'c', 'cpp', 'h', 'hpp',
+        'cs', 'go', 'rs', 'swift', 'kt', 'lua', 'pl', 'sql', 'jsx', 'tsx', 'vue', 'svelte', 'gitignore', 'dockerfile',
+        'env', 'toml', 'svg', // SVG is XML-based, usually safe to read as text
+    ]);
+
+    // Set of common binary/non-text file extensions to skip reading (lowercase)
+    const SKIP_EXTENSIONS = new Set([
+        // Images
+        'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp', 'ico', 'avif',
+        // Audio
+        'mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a',
+        // Video
+        'mp4', 'mov', 'avi', 'wmv', 'mkv', 'webm', 'flv',
+        // Documents
+        'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'odp', 'ods',
+        // Archives
+        'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'iso', 'jar', 'war',
+        // Fonts
+        'woff', 'woff2', 'ttf', 'otf', 'eot',
+        // Executables/Binaries
+        'exe', 'dll', 'so', 'dylib', 'app', 'bin', 'dat', 'msi', 'dmg',
+        // Other common binary formats
+        'psd', 'ai', 'eps', 'sqlite', 'db', 'swf', 'fla',
+    ]);
+
+
+    // --- File Input Handling ---
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) {
+            // Reset state
+            fileTreeContainer.innerHTML = '<p class="text-gray-500">No folder selected or folder is empty.</p>';
+            generateButton.disabled = true;
+            folderNameDisplay.textContent = '';
+            fileStructure = {};
+            fileMap.clear();
+            return;
+        }
+
+        // Clear previous state
+        fileMap.clear();
+        fileStructure = {};
+        rootFolderName = files[0].webkitRelativePath.split('/')[0];
+        folderNameDisplay.textContent = `Selected: ${rootFolderName}`;
+
+        // Populate fileMap and build the global fileStructure
+        for (const file of files) {
+            if (shouldSkipPath(file.webkitRelativePath)) {
+                continue;
+            }
+            fileMap.set(file.webkitRelativePath, file);
+            const pathParts = file.webkitRelativePath.split('/');
+            let currentLevel = fileStructure;
+
+            for (let i = 0; i < pathParts.length; i++) {
+                const part = pathParts[i];
+                const currentPath = pathParts.slice(0, i + 1).join('/');
+                const isFile = i === pathParts.length - 1;
+
+                if (isFile) {
+                    currentLevel[part] = { _isFile: true, path: currentPath, selected: true };
+                } else { // Directory
+                    if (!currentLevel[part]) {
+                        currentLevel[part] = { _isFolder: true, children: {}, path: currentPath, selected: true };
+                    } else {
+                        // Ensure existing node is marked as folder and has properties
+                        currentLevel[part]._isFolder = true;
+                        if (!currentLevel[part].children) currentLevel[part].children = {};
+                        if (!currentLevel[part].path) currentLevel[part].path = currentPath;
+                        if (currentLevel[part].selected === undefined) currentLevel[part].selected = true;
+                    }
+                    currentLevel = currentLevel[part].children;
+                }
+            }
+        }
+
+        renderFileTree(fileStructure, fileTreeContainer);
+        generateButton.disabled = false;
+        outputPreview.value = '';
+    }
+
+    // --- Skip Unwanted Paths ---
+    // Renamed from shouldSkip to avoid confusion with skipping content reading
+    function shouldSkipPath(path) {
+        const lowerPath = path.toLowerCase();
+        const parts = lowerPath.split('/');
+        // Skip common hidden/config files/folders at any level
+        const skippedFolders = ['node_modules', 'vendor', 'target', 'dist', 'build', '.git', '.vscode', '.idea', '__pycache__'];
+        if (parts.some(part => part.startsWith('.') || skippedFolders.includes(part))) {
+            return true;
+        }
+        return false;
+    }
+
+
+    // --- Tree Rendering ---
+    function renderFileTree(structure, container) {
+        container.innerHTML = '';
+        const rootUl = document.createElement('ul');
+        rootUl.className = 'tree';
+
+        const actualRoot = structure[rootFolderName]?.children ?? structure;
+
+        const sortedKeys = Object.keys(actualRoot).sort((a, b) => {
+            const nodeA = actualRoot[a];
+            const nodeB = actualRoot[b];
+            if (nodeA._isFolder && !nodeB._isFolder) return -1;
+            if (!nodeA._isFolder && nodeB._isFolder) return 1;
+            return a.localeCompare(b);
+        });
+
+        for (const name of sortedKeys) {
+            const node = actualRoot[name];
+            const li = createTreeNode(name, node);
+            rootUl.appendChild(li);
+        }
+
+        if (rootUl.children.length === 0) {
+            container.innerHTML = '<p class="text-gray-500">No files or folders found (or all were skipped) in the selected directory.</p>';
+            generateButton.disabled = true;
+        } else {
+            container.appendChild(rootUl);
+        }
+    }
+
+    function createTreeNode(name, node) {
+        const li = document.createElement('li');
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = node.selected;
+        checkbox.dataset.path = node.path;
+
+        checkbox.addEventListener('change', (event) => {
+            const isChecked = event.target.checked;
+            node.selected = isChecked; // Update data model
+
+            if (node._isFolder) {
+                updateChildrenSelection(node, isChecked); // Update children data & UI
+            }
+            updateParentCheckboxState(event.target); // Update parent UI state
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(` ${name}`));
+        li.appendChild(label);
+
+        if (node._isFolder) {
+            label.classList.add('font-semibold', 'text-blue-700');
+            const childrenUl = document.createElement('ul');
+            const sortedChildKeys = Object.keys(node.children).sort((a, b) => {
+                const nodeA = node.children[a];
+                const nodeB = node.children[b];
+                if (nodeA._isFolder && !nodeB._isFolder) return -1;
+                if (!nodeA._isFolder && nodeB._isFolder) return 1;
+                return a.localeCompare(b);
+            });
+            for (const childName of sortedChildKeys) {
+                childrenUl.appendChild(createTreeNode(childName, node.children[childName]));
+            }
+            li.appendChild(childrenUl);
+        } else {
+            label.classList.add('text-gray-800');
+        }
+
+        return li;
+    }
+
+    // Update children nodes in the fileStructure and their corresponding checkboxes
+    function updateChildrenSelection(folderNode, isSelected) {
+        // Update data model first
+        for (const childName in folderNode.children) {
+            const childNode = folderNode.children[childName];
+            childNode.selected = isSelected;
+            if (childNode._isFolder) {
+                updateChildrenSelection(childNode, isSelected);
+            }
+        }
+        // Update UI checkboxes
+        const folderElement = fileTreeContainer.querySelector(`input[data-path="${folderNode.path}"]`);
+        if (!folderElement) return;
+        const parentLi = folderElement.closest('li');
+        if (!parentLi) return;
+        const childCheckboxes = parentLi.querySelectorAll('ul input[type="checkbox"]');
+        childCheckboxes.forEach(cb => {
+            cb.checked = isSelected;
+            cb.indeterminate = false;
+        });
+    }
+
+    // Helper to find a node by its unique path in the global fileStructure
+    function findNodeByPath(targetPath, structure = fileStructure) {
+        for (const name in structure) {
+            const node = structure[name];
+            if (node.path === targetPath) return node;
+            if (node._isFolder && node.children) {
+                const found = findNodeByPath(targetPath, node.children);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    // Update parent folder checkbox UI state (checked, indeterminate) based on children states
+    function updateParentCheckboxState(checkboxElement) {
+        const parentUl = checkboxElement.closest('ul');
+        if (!parentUl) return;
+        const parentLi = parentUl.closest('li');
+        if (!parentLi) return; // Reached top
+        const parentCheckbox = parentLi.querySelector(':scope > label > input[type="checkbox"]');
+        if (!parentCheckbox) return;
+
+        const siblingCheckboxes = parentUl.querySelectorAll(':scope > li > label > input[type="checkbox"]');
+        const allChecked = Array.from(siblingCheckboxes).every(cb => cb.checked && !cb.indeterminate);
+        const someChecked = Array.from(siblingCheckboxes).some(cb => cb.checked || cb.indeterminate);
+
+        // Update parent checkbox UI
+        if (allChecked) {
+            parentCheckbox.checked = true;
+            parentCheckbox.indeterminate = false;
+        } else if (someChecked) {
+            parentCheckbox.checked = false;
+            parentCheckbox.indeterminate = true;
+        } else {
+            parentCheckbox.checked = false;
+            parentCheckbox.indeterminate = false;
+        }
+
+        // Update parent node's selected status in data model (only selected if fully checked)
+        const parentPath = parentCheckbox.dataset.path;
+        const parentNode = findNodeByPath(parentPath);
+        if(parentNode) {
+            parentNode.selected = parentCheckbox.checked && !parentCheckbox.indeterminate;
+        }
+
+        // Recurse upwards
+        updateParentCheckboxState(parentCheckbox);
+    }
+
+
+    // --- Prompt Generation and Copying ---
+    generateButton.addEventListener('click', generateAndCopyPrompt);
+
+    async function generateAndCopyPrompt() {
+        if (fileMap.size === 0 || Object.keys(fileStructure).length === 0) {
+            showTemporaryMessage('No folder selected or structure is empty.', 'error');
+            return;
+        }
+
+        generateButton.disabled = true;
+        generateButton.textContent = 'Generating...';
+        outputPreview.value = 'Processing files...';
+
+        try {
+            const allNodes = getAllNodes(fileStructure);
+            // Filter for files that are marked as selected in the data model
+            const selectedFileNodes = allNodes.filter(node => node._isFile && node.selected);
+
+            if (selectedFileNodes.length === 0) {
+                showTemporaryMessage('No files are currently selected to include in the prompt.', 'error');
+                outputPreview.value = 'No files selected.';
+                generateButton.textContent = 'Generate & Copy Prompt';
+                generateButton.disabled = false;
+                return;
+            }
+
+            // Build the tree string
+            const treeRootNode = fileStructure[rootFolderName];
+            const treeString = buildTreeString(
+                treeRootNode?.children ?? fileStructure,
+                includeFullTreeCheckbox.checked ? null : (node) => node.selected || isAncestorOfSelected(node),
+                rootFolderName
+            );
+
+            let promptContent = `this is my curent applicaiton:\n\n${treeString}\n\n`;
+
+            // Read content of selected files (intelligently skipping non-text)
+            const fileContents = await Promise.all(
+                selectedFileNodes.map(node => readFileContent(fileMap.get(node.path))) // Pass the File object
+            );
+
+            // Append file contents or skipped message
+            fileContents.forEach((contentData) => {
+                if (contentData) {
+                    const relativePath = contentData.path.substring(rootFolderName.length + 1);
+                    promptContent += `#### ${relativePath} ####\n\n`;
+                    promptContent += `${contentData.content}\n\n`; // Content will include skipped message if applicable
+                }
+            });
+
+            outputPreview.value = promptContent.trim();
+            await navigator.clipboard.writeText(promptContent.trim());
+            showTemporaryMessage('Prompt generated and copied to clipboard!', 'success');
+
+        } catch (error) {
+            console.error('Error generating prompt:', error);
+            outputPreview.value = `Error: ${error.message}`;
+            showTemporaryMessage(`Error: ${error.message}`, 'error');
+        } finally {
+            generateButton.disabled = false;
+            generateButton.textContent = 'Generate & Copy Prompt';
+        }
+    }
+
+    // Recursively get all nodes from the structure
+    function getAllNodes(structure) {
+        let nodes = [];
+        for (const name in structure) {
+            const node = structure[name];
+            nodes.push(node);
+            if (node._isFolder && node.children) {
+                nodes = nodes.concat(getAllNodes(node.children));
+            }
+        }
+        return nodes;
+    }
+
+    // Check if a folder node is an ancestor of any selected node (for filtered tree view)
+    function isAncestorOfSelected(folderNode) {
+        if (!folderNode?._isFolder || !folderNode.children) return false;
+        for (const childName in folderNode.children) {
+            const childNode = folderNode.children[childName];
+            if (childNode.selected || (childNode._isFolder && isAncestorOfSelected(childNode))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    // Read file content intelligently based on extension
+    function readFileContent(file) {
+        return new Promise((resolve) => {
+            if (!file) {
+                resolve(null); // Should not happen if node exists
+                return;
+            }
+
+            const fileName = file.name;
+            const fileExtension = fileName.includes('.') ? fileName.split('.').pop().toLowerCase() : '';
+
+            // 1. Check if extension is in the SKIP list
+            if (SKIP_EXTENSIONS.has(fileExtension)) {
+                console.log(`Skipping content for non-text file: ${fileName}`);
+                resolve({
+                    name: file.name,
+                    path: file.webkitRelativePath,
+                    content: `[Content skipped - Non-text file (${fileExtension})]` // Indicate skipped
+                });
+                return;
+            }
+
+            // 2. Check if extension is in the TEXT list (or if no extension)
+            //    Treat files with no extension as potentially text.
+            if (TEXT_EXTENSIONS.has(fileExtension) || fileExtension === '') {
+                console.log(`Reading text file: ${fileName}`);
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    resolve({ name: file.name, path: file.webkitRelativePath, content: event.target.result });
+                };
+                reader.onerror = (event) => {
+                    console.error(`Error reading text file ${file.name}:`, event.target.error);
+                    resolve({ name: file.name, path: file.webkitRelativePath, content: `[Error reading file: ${event.target.error}]` });
+                };
+                reader.readAsText(file); // Read as text
+                return;
+            }
+
+            // 3. Default: Extension not in TEXT or SKIP lists (Unknown type)
+            //    Try reading as text, include error on failure.
+            console.log(`Attempting to read unknown file type as text: ${fileName}`);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                resolve({ name: file.name, path: file.webkitRelativePath, content: event.target.result });
+            };
+            reader.onerror = (event) => {
+                console.warn(`Failed to read unknown file type ${file.name} as text:`, event.target.error, `- Skipping content.`);
+                // Treat read error for unknown type as skippable content
+                resolve({ name: file.name, path: file.webkitRelativePath, content: `[Content skipped - Error reading unknown file type (${fileExtension})]` });
+            };
+            reader.readAsText(file);
+
+        });
+    }
+
+    // Build the visual tree string
+    function buildTreeString(structure, filterFn = null, rootName = '', indent = '', isLastRoot = true) {
+        let tree = '';
+        if (rootName) {
+            tree += `${rootName}/\n`;
+        }
+
+        const keys = Object.keys(structure).sort((a, b) => {
+            const nodeA = structure[a];
+            const nodeB = structure[b];
+            if (nodeA._isFolder && !nodeB._isFolder) return -1;
+            if (!nodeA._isFolder && nodeB._isFolder) return 1;
+            return a.localeCompare(b);
+        });
+
+        keys.forEach((key, index) => {
+            const node = structure[key];
+            const isLast = index === keys.length - 1;
+            const connector = isLast ? '└─ ' : '├─ ';
+            const prefix = indent + connector;
+            const childIndent = indent + (isLast ? '   ' : '│  ');
+
+            const shouldInclude = !filterFn || filterFn(node);
+
+            if (shouldInclude) {
+                tree += `${prefix}${key}${node._isFolder ? '/' : ''}\n`;
+                if (node._isFolder && node.children) {
+                    tree += buildTreeString(node.children, filterFn, '', childIndent, isLast);
+                }
+            }
+        });
+        return tree;
+    }
+
+    // --- Utility Functions ---
+    let messageTimeout;
+    function showTemporaryMessage(message, type = 'success') {
+        messageBox.textContent = message;
+        messageBox.classList.remove('success', 'error');
+        if (type === 'success') messageBox.classList.add('success');
+        else if (type === 'error') messageBox.classList.add('error');
+        messageBox.style.display = 'block';
+
+        clearTimeout(messageTimeout);
+        messageTimeout = setTimeout(() => {
+            messageBox.style.display = 'none';
+        }, 3000);
+    }
+
+</script>
+</body>
+</html>

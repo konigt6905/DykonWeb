@@ -1,0 +1,118 @@
+/**
+* assets/js/include.js
+*
+* Fetches HTML partials and injects them into corresponding container elements.
+* Also initializes any necessary JavaScript after partials are loaded.
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
+// Select all elements intended to hold partial HTML content
+// Assumes containers have IDs like "partialName-container"
+const partialContainers = document.querySelectorAll('[id$="-container"]');
+
+// Keep track of loaded partials to run scripts afterwards
+const loadedPartials = [];
+const totalPartials = partialContainers.length;
+
+/**
+* Fetches HTML content from a specified URL.
+* @param {string} url - The URL of the HTML partial file.
+* @returns {Promise<string>} - A promise that resolves with the HTML text or rejects with an error.
+    */
+    const fetchHtml = async (url) => {
+    try {
+    const response = await fetch(url);
+    if (!response.ok) {
+    // Throw an error if the network response is not OK (e.g., 404 Not Found)
+    throw new Error(`HTTP error! Status: ${response.status} for ${url}`);
+    }
+    // Return the HTML content as text
+    return await response.text();
+    } catch (error) {
+    // Log any errors during the fetch process
+    console.error('Error fetching partial:', error);
+    // Return an error message to be displayed in the container
+    return `<p class="text-red-500 p-4">Error loading content from ${url}. Please check the file path and server status.</p>`;
+    }
+    };
+
+    /**
+    * Initializes the mobile navigation menu toggle functionality.
+    * This should be called *after* the nav partial has been loaded.
+    */
+    const initializeMobileNav = () => {
+    const menuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    // Check if elements exist before adding listeners
+    if (menuButton && mobileMenu) {
+    const menuIconOpen = menuButton.querySelector('svg:first-child');
+    const menuIconClose = menuButton.querySelector('svg:last-child');
+
+    // Ensure icons exist before trying to toggle classes
+    if (!menuIconOpen || !menuIconClose) {
+    console.error("Could not find menu icons within the mobile menu button.");
+    return;
+    }
+
+    menuButton.addEventListener('click', () => {
+    const expanded = menuButton.getAttribute('aria-expanded') === 'true' || false;
+    menuButton.setAttribute('aria-expanded', !expanded);
+    mobileMenu.classList.toggle('hidden'); // Toggle visibility of the menu
+    menuIconOpen.classList.toggle('hidden'); // Toggle open icon
+    menuIconOpen.classList.toggle('block');
+    menuIconClose.classList.toggle('hidden'); // Toggle close icon
+    menuIconClose.classList.toggle('block');
+    });
+
+    // Add event listener to close menu when a link is clicked
+    mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+    // Check if the menu is currently open before trying to close it
+    if (!mobileMenu.classList.contains('hidden')) {
+    menuButton.click(); // Simulate a click on the button to close the menu
+    }
+    });
+    });
+    console.log("Mobile navigation initialized.");
+    } else {
+    console.error("Mobile menu button or menu container not found after loading nav partial.");
+    }
+    };
+
+    /**
+    * Function to run after all partials are loaded.
+    */
+    const onAllPartialsLoaded = () => {
+    console.log("All partials loaded successfully.");
+    // Initialize components that depend on loaded partials
+    initializeMobileNav();
+
+    // Add any other initializations here (e.g., sliders, animations)
+    };
+
+
+    // Iterate over each container element
+    partialContainers.forEach(async (container) => {
+    // Extract the partial name from the container's ID (e.g., "nav-container" -> "nav")
+    const partialName = container.id.replace('-container', '');
+    // Construct the path to the partial HTML file
+    const partialUrl = `partials/${partialName}.html`;
+
+    // Fetch the HTML content for the partial
+    const htmlContent = await fetchHtml(partialUrl);
+
+    // Inject the fetched HTML into the container
+    container.innerHTML = htmlContent;
+    // Add 'loaded' class for potential fade-in effect
+    container.classList.add('loaded');
+
+    // Track loaded partial
+    loadedPartials.push(partialName);
+
+    // Check if all partials are loaded
+    if (loadedPartials.length === totalPartials) {
+    onAllPartialsLoaded();
+    }
+    });
+    });
