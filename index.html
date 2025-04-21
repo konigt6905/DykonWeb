@@ -55,33 +55,51 @@
         console.log("Initializing AOS...");
         try {
             AOS.init({
-                duration: 700,           // Slightly longer duration for smoother animations
-                offset: 120,             // Slightly increased offset
-                once: true,              // Keep: Animate only once
-                easing: 'ease-out',      // Smoother easing
-                // --- CRITICAL CHANGE FOR MOBILE ---
-                disable: 'phone',        // Use 'phone' which is more reliable than custom function
-                // --- OR use a simpler width check ---
-                // disable: window.innerWidth < 768,  // Fixed value instead of function
+                duration: 700,           // Smoother animations
+                offset: 120,
+                once: true,              // Animate only once
+                easing: 'ease-out',
+                // Remove the disable option completely so it works on all devices
+                // Make sure elements are visible even if AOS fails
+                startEvent: 'DOMContentLoaded' // Initialize earlier
             });
             console.log("AOS Initialized successfully.");
+
+            // Force all AOS elements to be visible on resize (critical fix)
+            window.addEventListener('resize', () => {
+                document.querySelectorAll('[data-aos]').forEach(el => {
+                    el.classList.add('aos-animate');
+                });
+            });
+
+            // Safety timeout - make all elements visible after 2 seconds regardless of animation
+            setTimeout(() => {
+                document.querySelectorAll('[data-aos]').forEach(el => {
+                    el.classList.add('aos-animate');
+                    // Backup style in case the class doesn't work
+                    el.style.opacity = 1;
+                    el.style.transform = 'none';
+                });
+            }, 2000);
         } catch (e) {
             console.error("Error initializing AOS:", e);
+            // If AOS fails, make sure all content is visible
             document.querySelectorAll('[data-aos]').forEach(el => {
                 el.removeAttribute('data-aos');
                 el.style.opacity = 1;
+                el.style.transform = 'none';
             });
         }
     });
 
-    // Initialize gallery on DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', () => {
-        // Will be defined in gallery.js
+    // Additional safety - ensure all content is visible after page load
+    window.addEventListener('load', () => {
         setTimeout(() => {
-            if (typeof initGallery === 'function') {
-                initGallery();
-            }
-        }, 1000); // Short delay to ensure content is loaded
+            document.querySelectorAll('[data-aos]').forEach(el => {
+                el.classList.add('aos-animate');
+                el.style.opacity = 1;
+            });
+        }, 500);
     });
 </script>
 

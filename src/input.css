@@ -355,3 +355,24 @@ body::before {
 .blue-glow {
     box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
 }
+
+[data-aos] {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+/* Force visibility on mobile and when AOS might be disrupted */
+@media (max-width: 768px) {
+    [data-aos] {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
+/* Failsafe for all viewport sizes */
+html.no-js [data-aos],
+html.no-aos [data-aos],
+[data-aos].aos-animate {
+    opacity: 1 !important;
+    transform: none !important;
+}

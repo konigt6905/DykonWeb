@@ -1,5 +1,4 @@
 <section id="gallery" class="bg-neutral-900 py-24 sm:py-32 relative overflow-hidden">
-    <!-- Decorative elements -->
     <div class="absolute inset-0">
         <div class="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent"></div>
         <div class="absolute -top-40 right-40 w-80 h-80 bg-blue-500/5 rounded-full filter blur-3xl"></div>
@@ -17,214 +16,45 @@
             </p>
         </div>
 
-        <!-- Ultra Simple Gallery -->
         <div class="relative max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="200">
             <div class="relative overflow-hidden rounded-xl border border-neutral-700/50 aspect-w-16 aspect-h-9 h-[400px] sm:h-[500px]">
-                <!-- Current image display -->
-                <div id="galleryCurrentImage" class="w-full h-full bg-neutral-800">
-                    <img id="displayedImage" src="assets/images/gallery/img1.jpg" alt="Galerie obrázků" class="w-full h-full object-cover"
-                         onerror="this.src='https://placehold.co/1200x675/1f2937/FFFFFF?text=Image';">
+                <div id="galleryDisplayArea" class="w-full h-full bg-neutral-800 relative">
+                    <img id="displayedImage" src="assets/images/gallery/img1.jpg" alt="Galerie obrázků" class="w-full h-full object-cover transition-opacity duration-500 ease-in-out"
+                         onerror="this.style.display='none'; console.error('Failed to load gallery image:', this.src); document.getElementById('galleryImageErrorPlaceholder').style.display='flex';">
 
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 p-6 flex flex-col justify-end">
+                    {/* Placeholder for image loading error */}
+                    <div id="galleryImageErrorPlaceholder" style="display: none;" class="absolute inset-0 flex items-center justify-center bg-neutral-700 text-neutral-400">
+                        <span>Obrázek nelze načíst</span>
+                    </div>
+
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 p-6 flex flex-col justify-end pointer-events-none">
                         <h3 id="imageTitle" class="text-xl font-bold text-white">Precizní řezný nůž</h3>
                         <p id="imageDescription" class="text-neutral-300 mt-2">Vysoce kvalitní řezné nástroje pro průmyslové aplikace</p>
                     </div>
                 </div>
 
-                <!-- Navigation buttons -->
-                <button id="prevButton" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10">
+                {/* Navigation buttons */}
+                <button id="prevButton" aria-label="Předchozí obrázek" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10 transition-opacity duration-300 opacity-70 hover:opacity-100">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
 
-                <button id="nextButton" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10">
+                <button id="nextButton" aria-label="Další obrázek" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10 transition-opacity duration-300 opacity-70 hover:opacity-100">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
 
-                <!-- Dots indicators -->
-                <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-                    <button class="w-3 h-3 rounded-full bg-blue-500" data-index="0"></button>
-                    <button class="w-3 h-3 rounded-full bg-white/30" data-index="1"></button>
-                    <button class="w-3 h-3 rounded-full bg-white/30" data-index="2"></button>
-                    <button class="w-3 h-3 rounded-full bg-white/30" data-index="3"></button>
-                    <button class="w-3 h-3 rounded-full bg-white/30" data-index="4"></button>
+                <div id="galleryDotsContainer" class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10">
                 </div>
             </div>
 
             <div class="mt-8 text-center">
                 <p class="text-neutral-400 italic">
-                    Galerie se automaticky přepíná mezi obrázky nebo můžete použít šipky pro manuální navigaci.
+                    Galerie se automaticky přepíná. Použijte šipky, body, přejetí prstem nebo klávesnici pro navigaci.
                 </p>
             </div>
         </div>
     </div>
 </section>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Gallery image data
-        const galleryImages = [
-            {
-                src: 'assets/images/gallery/img1.jpg',
-                alt: 'Precizní řezný nůž',
-                title: 'Precizní řezný nůž',
-                description: 'Vysoce kvalitní řezné nástroje pro průmyslové aplikace'
-            },
-            {
-                src: 'assets/images/gallery/img2.jpg',
-                alt: 'Strojní vybavení',
-                title: 'Strojní vybavení',
-                description: 'Moderní technologické vybavení pro přesnou výrobu'
-            },
-            {
-                src: 'assets/images/gallery/img3.jpg',
-                alt: 'Zakázková výroba',
-                title: 'Zakázková výroba',
-                description: 'Komponenty na míru vašim specifickým potřebám'
-            },
-            {
-                src: 'https://placehold.co/1200x675/1f2937/FFFFFF?text=Precision+Engineering',
-                alt: 'Přesné inženýrství',
-                title: 'Přesné inženýrství',
-                description: 'Dokonalost v každém detailu našich výrobků'
-            },
-            {
-                src: 'https://placehold.co/1200x675/1f2937/FFFFFF?text=Quality+Control',
-                alt: 'Kontrola kvality',
-                title: 'Kontrola kvality',
-                description: 'Důkladná kontrola zajišťuje perfektní kvalitu'
-            }
-        ];
-
-        // Get gallery elements
-        const image = document.getElementById('displayedImage');
-        const title = document.getElementById('imageTitle');
-        const description = document.getElementById('imageDescription');
-        const prevButton = document.getElementById('prevButton');
-        const nextButton = document.getElementById('nextButton');
-        const dotButtons = document.querySelectorAll('[data-index]');
-
-        // Keep track of current image
-        let currentIndex = 0;
-        let intervalId;
-
-        // Function to display a specific image
-        function showImage(index) {
-            // Make sure index is within bounds
-            if (index < 0) index = galleryImages.length - 1;
-            if (index >= galleryImages.length) index = 0;
-
-            // Update current index
-            currentIndex = index;
-
-            // Update image and text
-            image.src = galleryImages[index].src;
-            image.alt = galleryImages[index].alt;
-            title.textContent = galleryImages[index].title;
-            description.textContent = galleryImages[index].description;
-
-            // Update dot indicators
-            dotButtons.forEach((dot, i) => {
-                if (i === index) {
-                    dot.classList.remove('bg-white/30');
-                    dot.classList.add('bg-blue-500');
-                } else {
-                    dot.classList.remove('bg-blue-500');
-                    dot.classList.add('bg-white/30');
-                }
-            });
-        }
-
-        // Handle error if image doesn't load
-        image.onerror = function() {
-            this.src = 'https://placehold.co/1200x675/1f2937/FFFFFF?text=Image+Not+Found';
-        };
-
-        // Event listeners for navigation
-        prevButton.addEventListener('click', function() {
-            showImage(currentIndex - 1);
-            resetInterval();
-        });
-
-        nextButton.addEventListener('click', function() {
-            showImage(currentIndex + 1);
-            resetInterval();
-        });
-
-        // Event listeners for dot indicators
-        dotButtons.forEach(dot => {
-            dot.addEventListener('click', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                showImage(index);
-                resetInterval();
-            });
-        });
-
-        // Auto-rotate images
-        function startInterval() {
-            intervalId = setInterval(function() {
-                showImage(currentIndex + 1);
-            }, 5000); // Change image every 5 seconds
-        }
-
-        function resetInterval() {
-            clearInterval(intervalId);
-            startInterval();
-        }
-
-        // Initialize gallery
-        showImage(0);
-        startInterval();
-
-        // Pause rotation when hovering over the gallery
-        const galleryContainer = document.getElementById('galleryCurrentImage');
-        galleryContainer.addEventListener('mouseenter', function() {
-            clearInterval(intervalId);
-        });
-
-        galleryContainer.addEventListener('mouseleave', function() {
-            startInterval();
-        });
-
-        // Touch swipe support
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        galleryContainer.addEventListener('touchstart', function(e) {
-            touchStartX = e.changedTouches[0].screenX;
-        }, { passive: true });
-
-        galleryContainer.addEventListener('touchend', function(e) {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, { passive: true });
-
-        function handleSwipe() {
-            const swipeThreshold = 50;
-
-            if (touchStartX - touchEndX > swipeThreshold) {
-                // Swipe left (next)
-                showImage(currentIndex + 1);
-                resetInterval();
-            } else if (touchEndX - touchStartX > swipeThreshold) {
-                // Swipe right (prev)
-                showImage(currentIndex - 1);
-                resetInterval();
-            }
-        }
-
-        // Keypress navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                showImage(currentIndex - 1);
-                resetInterval();
-            } else if (e.key === 'ArrowRight') {
-                showImage(currentIndex + 1);
-                resetInterval();
-            }
-        });
-    });
-</script>
