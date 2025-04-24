@@ -256,13 +256,19 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`Found ${totalPartials} partial containers.`);
 
     function getBasePath() {
+        // If using file:// protocol, don't use leading slash for paths
+        if (window.location.protocol === 'file:') {
+            return '.'; // Use relative path for file:// protocol
+        }
+
+        // For web servers
         const pathSegments = window.location.pathname.split('/');
         const repoName = pathSegments[1] && !pathSegments[1].includes('.html') ? `/${pathSegments[1]}` : '';
-        // Basic check for local vs deployed
-        const finalBasePath = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : repoName;
+        const finalBasePath = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : repoName;
         console.log(`Detected base path: '${finalBasePath}'`);
         return finalBasePath;
     }
+
     const basePath = getBasePath();
 
     const fetchHtml = async (url) => {
